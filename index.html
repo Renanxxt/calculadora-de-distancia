@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcular Distância entre Pontos</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; padding: 16px; }
+.card-dist {
+    max-width: 420px; margin: 20px auto;
+    background: white; padding: 24px;
+    border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+.card-dist h2 { color: #ed3a3a; margin-bottom: 6px; text-align: center; }
+.card-dist > p { color: #64748b; font-size: 0.9rem; margin-bottom: 18px; text-align: center; }
+
+.ponto {
+    background: #f8fafc; padding: 12px;
+    border-radius: 10px; margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+}
+.ponto h4 { color: #334155; font-size: 0.88rem; margin-bottom: 8px; }
+.ponto input {
+    width: 100%; padding: 10px 12px; margin-bottom: 6px;
+    border: 2px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.88rem; font-family: inherit;
+}
+.ponto input:focus { outline: none; border-color: #a855f7; }
+
+.btn-calcular, .btn-usar-gps {
+    width: 100%; padding: 13px; margin-top: 6px;
+    border: none; border-radius: 10px;
+    font-weight: 700; cursor: pointer;
+    font-family: inherit; font-size: 0.9rem;
+}
+.btn-calcular { background: #ed3a3a; color: white; }
+.btn-usar-gps { background: #e0f2fe; color: #a10303; font-size: 0.85rem; }
+
+.resultado-dist {
+    margin-top: 16px; padding: 18px;
+    background: #f5f3ff; border-radius: 12px;
+    border: 2px solid #ddd6fe;
+    text-align: center; color: #5b21b6;
+    font-size: 0.95rem; font-weight: 600;
+    min-height: 70px;
+    display: flex; align-items: center; justify-content: center;
+}
+.vazio { color: #94a3b8; font-weight: 400; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="card-dist">
+    <h2>🧮 Calculadora de Distância</h2>
+    <p>Informe dois pontos e veja a distância em km.</p>
+
+    <div class="ponto">
+        <h4>📍 Ponto A</h4>
+        <input type="number" id="latA" placeholder="Latitude" step="any" value="-21.7642">
+        <input type="number" id="lonA" placeholder="Longitude" step="any" value="-43.3502">
+    </div>
+
+    <div class="ponto">
+        <h4>📍 Ponto B</h4>
+        <input type="number" id="latB" placeholder="Latitude" step="any" value="-23.5505">
+        <input type="number" id="lonB" placeholder="Longitude" step="any" value="-46.6333">
+    </div>
+
+    <button class="btn-calcular" onclick="calcularDistancia()">📐 Calcular Distância</button>
+    <button class="btn-usar-gps" onclick="usarMinhaLocalizacao()">📡 Usar Minha Localização como Ponto A</button>
+
+    <div class="resultado-dist" id="resultadoDist">
+        <span class="vazio">Informe as coordenadas e clique em calcular</span>
+    </div>
+</div>
+<script>
+function calcularDistancia() {
+    const latA = parseFloat(document.getElementById("latA").value);
+    const lonA = parseFloat(document.getElementById("lonA").value);
+    const latB = parseFloat(document.getElementById("latB").value);
+    const lonB = parseFloat(document.getElementById("lonB").value);
+    const res = document.getElementById("resultadoDist");
+
+    if ([latA, lonA, latB, lonB].some(v => isNaN(v))) {
+        res.innerHTML = '<span style="color:#ef4444;">❌ Preencha todas as coordenadas</span>';
+        return;
+    }
+
+    const R = 6371;
+    const dLat = (latB - latA) * Math.PI / 180;
+    const dLon = (lonB - lonA) * Math.PI / 180;
+    const a = Math.sin(dLat/2) ** 2 +
+              Math.cos(latA * Math.PI/180) * Math.cos(latB * Math.PI/180) *
+              Math.sin(dLon/2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const d = R * c;
+
+    res.innerHTML =
+        "📏 Distância: <strong>" + d.toFixed(2) + " km</strong>" +
+        "<br><small style='font-weight:400; color:#7c3aed;'>" +
+        d.toFixed(0) + " metros</small>";
+}
+
+function usarMinhaLocalizacao() {
+    if (!navigator.geolocation) {
+        alert("Geolocalização não suportada.");
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            document.getElementById("latA").value = pos.coords.latitude.toFixed(6);
+            document.getElementById("lonA").value = pos.coords.longitude.toFixed(6);
+            calcularDistancia();
+        },
+        function() {
+            alert("Não foi possível obter sua localização.");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+</script>
+</body>
+</html>
